@@ -18,29 +18,29 @@ def mape(y_true, y_pred):
 def prep_metadata(df):
     # select process_id and pipeline
     meta = df[['process_id', 'pipeline']].drop_duplicates().set_index('process_id') 
-    
+
     # convert categorical pipeline data to dummy variables
     meta = pd.get_dummies(meta)
-    
+
     # pipeline L12 not in test data
     if 'L12' not in meta.columns:
         meta['pipeline_L12'] = 0
-    
+
     # calculate number of phases for each process_object
     meta['num_phases'] = df.groupby('process_id')['phase'].apply(lambda x: x.nunique())
-    
+
     return meta
 
 
 def prep_time_series_features(df, columns=None):
     if columns is None:
         columns = df.columns
-    
+
     ts_df = df[ts_cols].set_index('process_id')
-    
+
     # create features: min, max, mean, standard deviation, and mean of the last five observations
     ts_features = ts_df.groupby('process_id').agg(['min', 'max', 'mean', 'std', lambda x: x.tail(5).mean()])
-    
+
     return ts_features
 
 def create_feature_matrix(df):
@@ -190,9 +190,6 @@ def store_experiment(layer1_models, layer2_model, validation_mape, y_hat):
     my_submission = pd.DataFrame(data=y_hat,
                              columns=submission_format.columns,
                              index=submission_format.index)
-
-
-
 
     my_submission.to_csv(DATA_DIR / f'submission_{filename}.csv')
 
